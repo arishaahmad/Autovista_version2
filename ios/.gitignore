@@ -1,0 +1,56 @@
+# Xcode and iOS Specific
+**/dgph
+*.mode1v3
+*.mode2v3
+*.moved-aside
+*.pbxuser
+*.perspectivev3
+**/*sync/
+.sconsign.dblite
+.tags*
+**/.vagrant/
+**/DerivedData/
+Icon?
+profile
+xcuserdata
+
+# Pods - Exclude but allow regeneration or commit specific files for Xcode Cloud
+# Ignore Pods, but allow Podfile.lock and Pods/Manifest.lock for dependency tracking
+!Podfile.lock
+!Pods/Manifest.lock
+
+# Flutter Specific Exclusions
+Flutter/App.framework
+Flutter/Flutter.framework
+Flutter/Flutter.podspec
+Flutter/ephemeral/
+Flutter/app.flx
+Flutter/app.zip
+Flutter/flutter_assets/
+ServiceDefinitions.json
+
+# Allow critical Flutter files for Xcode Cloud
+!Flutter/Generated.xcconfig
+!Flutter/flutter_export_environment.sh
+!Runner/GeneratedPluginRegistrant.*
+
+# Build System and Generated Files
+**/.symlinks/
+**/.generated/
+
+# Exceptions to above rules.
+!default.mode1v3
+!default.mode2v3
+!default.pbxuser
+!default.perspectivev3
+
+# Optional - Ignore user-specific Xcode files
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/
+
+# Optional - Ignore build artifacts
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcarchive

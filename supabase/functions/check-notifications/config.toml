@@ -1,0 +1,3 @@
+[functions.check-notifications]
+verify_jwt = false
+schedule = "@daily"

@@ -1,0 +1,97 @@
+# Uncomment this line to define a global platform for your project
+platform :ios, '13.0'
+
+# Add this line at the top of the file
+install! 'cocoapods', :deterministic_uuids => false
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  post_install do |installer|
+    installer.pods_project.targets.each do |target|
+      flutter_additional_ios_build_settings(target)
+      
+      target.build_configurations.each do |config|
+        # Basic iOS deployment target configuration
+        config.build_settings.delete 'IPHONEOS_DEPLOYMENT_TARGET'
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+        
+        # Set BUILD_LIBRARY_FOR_DISTRIBUTION to NO for all targets
+        config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'NO'
+        config.build_settings['ONLY_SAFE_API_EXTENSIONS'] = 'NO'
+        
+        # Special handling for geolocator_apple
+        if target.name == 'geolocator_apple'
+          config.build_settings['SWIFT_INSTALL_OBJC_HEADER'] = 'YES'
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+          config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
+          config.build_settings['SWIFT_OPTIMIZATION_LEVEL'] = '-Onone'
+          config.build_settings['HEADER_SEARCH_PATHS'] ||= ['$(PODS_ROOT)/Headers/Public/geolocator_apple/**']
+          config.build_settings['SWIFT_INCLUDE_PATHS'] ||= ['$(PODS_ROOT)/geolocator_apple/**']
+        end
+        
+        # Use $(inherited) for ENABLE_BITCODE
+        config.build_settings['ENABLE_BITCODE'] = '$(inherited)'
+        
+        # Additional settings to suppress warnings
+        config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
+        config.build_settings['SWIFT_SUPPRESS_WARNINGS'] = 'YES'
+        
+        # Ensure pods support arm64 architecture
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+        
+        # Enable modules for all targets
+        config.build_settings['DEFINES_MODULE'] = 'YES'
+        config.build_settings['SWIFT_INSTALL_OBJC_HEADER'] = 'YES'
+        
+        # Special handling for IosAwnCore
+        if target.name == 'IosAwnCore'
+          config.build_settings['SWIFT_VERSION'] = '5.0'
+          config.build_settings['ENABLE_MODULES'] = 'YES'
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+          config.build_settings['SWIFT_INSTALL_OBJC_HEADER'] = 'YES'
+          
+          # Add iOS frameworks
+          target.build_settings(config.name)['OTHER_LDFLAGS'] ||= []
+          target.build_settings(config.name)['OTHER_LDFLAGS'] << '-framework UserNotifications'
+          target.build_settings(config.name)['OTHER_LDFLAGS'] << '-framework UIKit'
+          target.build_settings(config.name)['OTHER_LDFLAGS'] << '-framework Foundation'
+        end
+        
+        # Add support for DKImagePickerController
+        if ['DKImagePickerController', 'DKPhotoGallery'].include?(target.name)
+          config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+        end
+      end
+    end
+  end
+end
