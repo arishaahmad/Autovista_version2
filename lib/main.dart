@@ -1,3 +1,4 @@
+import 'package:autovista/screens/document_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/login_screen.dart';
@@ -9,7 +10,6 @@ import 'screens/event_manager_screen.dart';
 import 'screens/document_screen.dart';
 import 'screens/parking_screen.dart';
 import 'screens/added_vehicle.dart';
-import 'screens/uploadeddocuments.dart';
 import 'screens/notifications_screen.dart';
 import 'services/notification_service.dart';
 import 'theme.dart';
@@ -77,7 +77,7 @@ class AutoVistaApp extends StatelessWidget {
           case '/uploaded_documents':
             final userId = settings.arguments as String;
             return MaterialPageRoute(
-                builder: (_) => ViewDocumentsScreen(userId: userId));
+                builder: (_) => DocumentListScreen(userId: userId));
           case '/notifications':
             final userId = settings.arguments as String;
             return MaterialPageRoute(builder: (_) => NotificationsScreen(userId: userId));

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import 'event_manager_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   final String userId;
@@ -32,25 +33,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadNotifications() async {
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
+      setState(() => _isLoading = true);
       final notifications = await _notificationService.getNotifications(widget.userId);
       setState(() {
         _notifications = notifications;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading notifications: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error loading notifications: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -64,17 +57,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _notificationService.markAsRead(notification.id);
       setState(() {
         final index = _notifications.indexOf(notification);
-        if (index != -1) {
-          _notifications[index] = notification.copyWith(isRead: true);
-        }
+        if (index != -1) _notifications[index] = notification.copyWith(isRead: true);
       });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error marking notification as read: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error marking notification as read: $e'), backgroundColor: Colors.red),
       );
     }
   }
@@ -82,18 +70,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _deleteNotification(NotificationModel notification) async {
     try {
       await _notificationService.deleteNotification(notification.id);
-      setState(() {
-        _notifications.remove(notification);
-      });
+      setState(() => _notifications.remove(notification));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error deleting notification: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error deleting notification: $e'), backgroundColor: Colors.red),
       );
     }
+  }
+
+  void _navigateToEventScreen(NotificationModel notification) async {
+    if (!notification.isRead) await _markAsRead(notification);
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CalendarFuelScreen(
+          userId: widget.userId,
+          notification: notification, // Make sure this is passed
+        ),
+      ),
+    );
   }
 
   @override
@@ -102,99 +99,81 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         title: const Text('Notifications'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadNotifications,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadNotifications),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _notifications.isEmpty
-              ? const Center(
-                  child: Text('No notifications'),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadNotifications,
-                  child: ListView.builder(
-                    itemCount: _notifications.length,
-                    itemBuilder: (context, index) {
-                      final notification = _notifications[index];
-                      return Dismissible(
-                        key: Key(notification.id),
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 16.0),
-                          child: const Icon(
-                            Icons.delete,
-                            color: Colors.white,
-                          ),
-                        ),
-                        direction: DismissDirection.endToStart,
-                        onDismissed: (direction) {
-                          _deleteNotification(notification);
-                        },
-                        child: ListTile(
-                          title: Text(
-                            notification.title,
-                            style: TextStyle(
-                              fontWeight:
-                                  notification.isRead ? FontWeight.normal : FontWeight.bold,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(notification.body),
-                              const SizedBox(height: 4),
-                              Text(
-                                timeago.format(notification.createdAt),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                          leading: Icon(
-                            _getNotificationIcon(notification.type),
-                            color: _getNotificationColor(notification.type),
-                          ),
-                          onTap: () {
-                            if (!notification.isRead) {
-                              _markAsRead(notification);
-                            }
-                            // TODO: Handle notification tap based on type and data
-                          },
-                        ),
-                      );
-                    },
-                  ),
+          ? const Center(child: Text('No notifications'))
+          : RefreshIndicator(
+        onRefresh: _loadNotifications,
+        child: ListView.builder(
+          itemCount: _notifications.length,
+          itemBuilder: (context, index) {
+            final notification = _notifications[index];
+            return Dismissible(
+              key: Key(notification.id),
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 16.0),
+                child: const Icon(Icons.delete, color: Colors.white),
+              ),
+              direction: DismissDirection.endToStart,
+              onDismissed: (direction) => _deleteNotification(notification),
+              child: ListTile(
+                title: Text(
+                  notification.title,
+                  style: TextStyle(
+                      fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold),
                 ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(notification.body),
+                    const SizedBox(height: 4),
+                    Text(
+                      timeago.format(notification.createdAt),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+                leading: Icon(
+                  _getNotificationIcon(notification.type),
+                  color: _getNotificationColor(notification.type),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.event_available,
+                      color: _getNotificationColor(notification.type)),
+                  onPressed: () => _navigateToEventScreen(notification),
+                ),
+                onTap: () {
+                  if (!notification.isRead) _markAsRead(notification);
+                },
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
   IconData _getNotificationIcon(String type) {
     switch (type) {
-      case 'maintenance':
-        return Icons.build;
-      case 'document_expiry':
-        return Icons.description;
-      case 'system':
-        return Icons.notifications;
-      default:
-        return Icons.notifications;
+      case 'maintenance': return Icons.build;
+      case 'document_expiry': return Icons.description;
+      case 'system': return Icons.notifications;
+      default: return Icons.notifications;
     }
   }
 
   Color _getNotificationColor(String type) {
     switch (type) {
-      case 'maintenance':
-        return Colors.orange;
-      case 'document_expiry':
-        return Colors.red;
-      case 'system':
-        return Colors.blue;
-      default:
-        return Colors.grey;
+      case 'maintenance': return Colors.orange;
+      case 'document_expiry': return Colors.red;
+      case 'system': return Colors.blue;
+      default: return Colors.grey;
     }
   }
 }

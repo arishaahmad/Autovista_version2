@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart';
 import '../models/event_model.dart';
+import '../models/notification_model.dart';
 import '../services/supabase_service.dart';
 
 class CalendarFuelScreen extends StatefulWidget {
   final String? userId;
+  final NotificationModel? notification;
 
-  const CalendarFuelScreen({super.key, this.userId});
+  const CalendarFuelScreen({super.key, this.userId, this.notification});
 
   @override
   State<CalendarFuelScreen> createState() => _CalendarFuelScreenState();
@@ -28,63 +30,59 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
   String _selectedEventType = 'Maintenance';
 
   final List<String> _eventTypes = [
-    'Maintenance',
-    'Fuel',
-    'Service',
-    'Insurance',
-    'License',
-    'Other',
+    'Maintenance', 'Fuel', 'Service', 'Insurance', 'License', 'Other',
   ];
 
   @override
   void initState() {
     super.initState();
-    _focusedDay = DateTime.now();
+    _focusedDay = widget.notification?.createdAt ?? DateTime.now();
     _selectedDay = _focusedDay;
     _events = {};
-    _loadEvents();
+    _loadEvents().then((_) {
+      if (widget.notification != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showAddEventDialog(prefillData: true);
+        });
+      }
+    });
   }
 
   Future<void> _loadEvents() async {
     if (widget.userId == null) return;
-
     try {
       final events = await _supabaseService.getUserEvents(widget.userId!);
       setState(() {
         _events = {};
         for (var event in events) {
-          final date = DateTime(
-            event.date.year,
-            event.date.month,
-            event.date.day,
-          );
-          if (_events[date] == null) _events[date] = [];
-          _events[date]!.add(event);
+          final date = DateTime(event.date.year, event.date.month, event.date.day);
+          _events[date] = [..._events[date] ?? [], event];
         }
       });
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error loading events: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error loading events: $e'), backgroundColor: Colors.red),
       );
     }
   }
 
-  List<Event> _getEventsForDay(DateTime day) {
-    return _events[day] ?? [];
-  }
+  List<Event> _getEventsForDay(DateTime day) => _events[day] ?? [];
 
-  Future<void> _showAddEventDialog() async {
-    _titleController.clear();
-    _descriptionController.clear();
-    _fuelNeededController.clear();
-    _locationController.clear();
-    _reminderTimeController.clear();
-    _notesController.clear();
-    _selectedEventType = 'Maintenance';
+  Future<void> _showAddEventDialog({bool prefillData = false}) async {
+    if (prefillData && widget.notification != null) {
+      _titleController.text = widget.notification!.title;
+      _descriptionController.text = widget.notification!.body;
+      _selectedEventType = _mapNotificationType(widget.notification!.type);
+    } else {
+      _titleController.clear();
+      _descriptionController.clear();
+      _fuelNeededController.clear();
+      _locationController.clear();
+      _reminderTimeController.clear();
+      _notesController.clear();
+      _selectedEventType = 'Maintenance';
+    }
 
     await showDialog(
       context: context,
@@ -97,17 +95,11 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
               DropdownButtonFormField<String>(
                 value: _selectedEventType,
                 decoration: const InputDecoration(labelText: 'Event Type'),
-                items: _eventTypes.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedEventType = value!;
-                  });
-                },
+                items: _eventTypes.map((type) => DropdownMenuItem(
+                  value: type,
+                  child: Text(type),
+                )).toList(),
+                onChanged: (value) => setState(() => _selectedEventType = value!),
               ),
               TextField(
                 controller: _titleController,
@@ -121,24 +113,20 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
               if (_selectedEventType == 'Fuel')
                 TextField(
                   controller: _fuelNeededController,
-                  decoration:
-                      const InputDecoration(labelText: 'Fuel Amount (L)'),
+                  decoration: const InputDecoration(labelText: 'Fuel Amount (L)'),
                   keyboardType: TextInputType.number,
                 ),
               TextField(
                 controller: _locationController,
-                decoration:
-                    const InputDecoration(labelText: 'Location (Optional)'),
+                decoration: const InputDecoration(labelText: 'Location (Optional)'),
               ),
               TextField(
                 controller: _reminderTimeController,
-                decoration: const InputDecoration(
-                    labelText: 'Reminder Time (Optional)'),
+                decoration: const InputDecoration(labelText: 'Reminder Time (Optional)'),
               ),
               TextField(
                 controller: _notesController,
-                decoration:
-                    const InputDecoration(labelText: 'Notes (Optional)'),
+                decoration: const InputDecoration(labelText: 'Notes (Optional)'),
                 maxLines: 2,
               ),
             ],
@@ -151,8 +139,7 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
           ),
           TextButton(
             onPressed: () async {
-              if (_titleController.text.isEmpty ||
-                  _descriptionController.text.isEmpty) {
+              if (_titleController.text.isEmpty || _descriptionController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Please fill in all required fields'),
@@ -171,15 +158,9 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
                 fuelNeeded: _fuelNeededController.text.isNotEmpty
                     ? double.parse(_fuelNeededController.text)
                     : null,
-                location: _locationController.text.isNotEmpty
-                    ? _locationController.text
-                    : null,
-                reminderTime: _reminderTimeController.text.isNotEmpty
-                    ? _reminderTimeController.text
-                    : null,
-                notes: _notesController.text.isNotEmpty
-                    ? _notesController.text
-                    : null,
+                location: _locationController.text,
+                reminderTime: _reminderTimeController.text,
+                notes: _notesController.text,
               );
 
               try {
@@ -197,7 +178,7 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error adding event: ${e.toString()}'),
+                    content: Text('Error adding event: $e'),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -206,6 +187,63 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
             child: const Text('Add'),
           ),
         ],
+      ),
+    );
+  }
+
+  String _mapNotificationType(String notificationType) {
+    switch (notificationType) {
+      case 'document_expiry': return 'License';
+      case 'maintenance': return 'Maintenance';
+      case 'system': return 'Other';
+      default: return 'Other';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Event Manager')),
+      body: Column(
+        children: [
+          TableCalendar<Event>(
+            firstDay: DateTime.utc(2020),
+            lastDay: DateTime.utc(2030),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            eventLoader: _getEventsForDay,
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            calendarStyle: const CalendarStyle(
+              markersMaxCount: 3,
+              markersAlignment: Alignment.bottomCenter,
+            ),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            },
+            onPageChanged: (focusedDay) => _focusedDay = focusedDay,
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView(
+              children: _getEventsForDay(_selectedDay).map((event) => Card(
+                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: ListTile(
+                  title: Text(event.title),
+                  subtitle: Text(event.description),
+                  trailing: Text(event.eventType),
+                  onTap: () => _showEventDetails(event),
+                ),
+              )).toList(),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddEventDialog,
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -266,7 +304,7 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Error deleting event: ${e.toString()}'),
+                    content: Text('Error deleting event: $e'),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -276,61 +314,6 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
             child: const Text('Delete'),
           ),
         ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Event Manager'),
-      ),
-      body: Column(
-        children: [
-          TableCalendar<Event>(
-            firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.utc(2030, 12, 31),
-            focusedDay: _focusedDay,
-            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-            eventLoader: _getEventsForDay,
-            startingDayOfWeek: StartingDayOfWeek.monday,
-            calendarStyle: const CalendarStyle(
-              markersMaxCount: 3,
-              markersAlignment: Alignment.bottomCenter,
-            ),
-            onDaySelected: (selectedDay, focusedDay) {
-              setState(() {
-                _selectedDay = selectedDay;
-                _focusedDay = focusedDay;
-              });
-            },
-            onPageChanged: (focusedDay) {
-              _focusedDay = focusedDay;
-            },
-          ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: ListView(
-              children: _getEventsForDay(_selectedDay).map((event) {
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 12.0, vertical: 4.0),
-                  child: ListTile(
-                    title: Text(event.title),
-                    subtitle: Text(event.description),
-                    trailing: Text(event.eventType),
-                    onTap: () => _showEventDetails(event),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddEventDialog,
-        child: const Icon(Icons.add),
       ),
     );
   }
