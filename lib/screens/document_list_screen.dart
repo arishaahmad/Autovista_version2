@@ -353,10 +353,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pop(context);
-          // This will take them back to the main screen where they can upload
         },
-        child: const Icon(Icons.add),
         tooltip: 'Upload New Document',
+        child: const Icon(Icons.add),
       ),
     );
   }
