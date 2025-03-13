@@ -39,7 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initializeNotifications() async {
     try {
-      // Request notification permissions first
       final hasPermission = await _notificationService.requestUserPermission(context);
       if (hasPermission) {
         await _notificationService.subscribeToUserNotifications(widget.userId);
@@ -103,8 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (!mounted) return;
 
               if (cars.isNotEmpty) {
-                logger.i(
-                    'Displaying info for car: ${cars.first.brand} ${cars.first.model}');
+                logger.i('Displaying info for car: ${cars.first.brand} ${cars.first.model}');
                 Navigator.pushNamed(
                   context,
                   '/added_vehicle_screen',
@@ -114,8 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 logger.w('No vehicles found for user');
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content:
-                        Text("No vehicles found. Please add a vehicle first."),
+                    content: Text("No vehicles found. Please add a vehicle first."),
                     backgroundColor: Colors.orange,
                   ),
                 );
@@ -218,8 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.directions_car,
-                            size: 40, color: Colors.teal),
+                        icon: const Icon(Icons.directions_car, size: 40, color: Colors.teal),
                         tooltip: "Edit Vehicle Information",
                         onPressed: () {
                           Navigator.pushNamed(
@@ -235,8 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.event,
-                            size: 40, color: Colors.teal),
+                        icon: const Icon(Icons.event, size: 40, color: Colors.teal),
                         tooltip: "Event Manager",
                         onPressed: () {
                           Navigator.pushNamed(
@@ -258,8 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.local_parking,
-                            size: 40, color: Colors.teal),
+                        icon: const Icon(Icons.local_parking, size: 40, color: Colors.teal),
                         tooltip: "Parking",
                         onPressed: () {
                           Navigator.pushNamed(
@@ -275,8 +269,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.scanner,
-                            size: 40, color: Colors.teal),
+                        icon: const Icon(Icons.scanner, size: 40, color: Colors.teal),
                         tooltip: "Document Scanner",
                         onPressed: () {
                           Navigator.pushNamed(
@@ -298,8 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.person,
-                            size: 40, color: Colors.teal),
+                        icon: const Icon(Icons.person, size: 40, color: Colors.teal),
                         tooltip: "Profile",
                         onPressed: () {
                           Navigator.pushNamed(
@@ -313,6 +305,40 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   _buildVehicleInfoButton(),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.emergency, size: 40, color: Colors.teal),
+                        tooltip: "Emergency Contacts",
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/emergency_contacts',
+                            arguments: widget.userId,
+                          );
+                        },
+                      ),
+                      const Text("Emergency"),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.support_agent, size: 40, color: Colors.teal),
+                        tooltip: "Roadside Assistance",
+                        onPressed: () {
+                          // Add roadside assistance logic
+                        },
+                      ),
+                      const Text("Assistance"),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 32),

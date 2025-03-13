@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:typed_data';
 import '../models/car_model.dart';
 import '../models/document_model.dart';
+import '../models/emergency_contact_model.dart';
 import '../models/parking_model.dart';
 import '../models/event_model.dart';
 import '../models/user_model.dart' as app_models;
@@ -782,6 +783,61 @@ class SupabaseService {
       throw Exception('Database error: ${e.message}');
     } catch (e) {
       throw Exception('Failed to clear parking locations: $e');
+    }
+  }
+
+  Future<List<EmergencyContact>> getEmergencyContacts(String userId) async {
+    try {
+      final List<dynamic> response = await supabase
+          .from('emergency_contact')
+          .select()
+          .eq('user_id', userId);
+
+      return response
+          .map((e) => EmergencyContact.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      throw Exception('Database error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to get emergency contacts: $e');
+    }
+  }
+
+  Future<void> addEmergencyContact(EmergencyContact contact) async {
+    try {
+      await supabase
+          .from('emergency_contact')
+          .insert(contact.toJson());
+    } on PostgrestException catch (e) {
+      throw Exception('Database error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to add emergency contact: $e');
+    }
+  }
+
+  Future<void> updateEmergencyContact(EmergencyContact contact) async {
+    try {
+      await supabase
+          .from('emergency_contact')
+          .update(contact.toJson())
+          .eq('id', contact.id);
+    } on PostgrestException catch (e) {
+      throw Exception('Database error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to update emergency contact: $e');
+    }
+  }
+
+  Future<void> deleteEmergencyContact(String contactId) async {
+    try {
+      await supabase
+          .from('emergency_contact')
+          .delete()
+          .eq('id', contactId);
+    } on PostgrestException catch (e) {
+      throw Exception('Database error: ${e.message}');
+    } catch (e) {
+      throw Exception('Failed to delete emergency contact: $e');
     }
   }
 }
