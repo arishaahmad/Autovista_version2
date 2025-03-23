@@ -61,8 +61,9 @@ class AutoVistaApp extends StatelessWidget {
             return MaterialPageRoute(
                 builder: (_) => ViewVehicleScreen(userId: userId));
           case '/eventManager':
+            final userId = settings.arguments as String;
             return MaterialPageRoute(
-                builder: (_) => const CalendarFuelScreen());
+                builder: (_) => CalendarFuelScreen(userId: userId));
           case '/document_screen':
             final userId = settings.arguments as String;
             return MaterialPageRoute(

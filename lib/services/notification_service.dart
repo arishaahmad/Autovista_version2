@@ -28,7 +28,7 @@ class NotificationService {
 
   Future<void> initialize() async {
     try {
-      // Initialize timezone
+      // Initialize timezonefl
       tz.initializeTimeZones();
 
       // Initialize awesome notifications

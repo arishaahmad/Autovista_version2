@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.example.autovista"
     compileSdk = 34
+
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
