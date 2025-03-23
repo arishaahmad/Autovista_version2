@@ -112,7 +112,25 @@ class _ViewVehicleScreenState extends State<ViewVehicleScreen> {
         child: Form(
           key: _formKey,
           child: ListView(
-            children: [
+            children: [ElevatedButton.icon(
+              onPressed: () async {
+                final result = await Navigator.pushNamed(context, '/ocr_screen');
+                if (result is Map<String, dynamic>) {
+                  setState(() {
+                    _brandController.text = result['brand'] ?? '';
+                    _modelController.text = result['model'] ?? '';
+                    _engineTypeController.text = result['engine_type'] ?? '';
+                    _mileageController.text = result['mileage'] ?? '';
+                    _regionController.text = result['region'] ?? '';
+                    _makeYearController.text = result['make_year'] ?? '';
+                  });
+                }
+              },
+              icon: const Icon(Icons.document_scanner),
+              label: const Text('Scan Document to Auto-fill'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+            ),
+
               TextFormField(
                 controller: _brandController,
                 decoration: const InputDecoration(

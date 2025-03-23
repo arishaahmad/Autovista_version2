@@ -14,6 +14,7 @@ import 'screens/added_vehicle.dart';
 import 'screens/notifications_screen.dart';
 import 'services/notification_service.dart';
 import 'theme.dart';
+import 'screens/ocr_Scan.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +45,8 @@ class AutoVistaApp extends StatelessWidget {
       initialRoute: '/login',
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/ocr_screen':
+            return MaterialPageRoute(builder: (_) => const OcrScanScreen());
           case '/login':
             return MaterialPageRoute(builder: (_) => const LoginScreen());
           case '/signup':
@@ -61,8 +64,9 @@ class AutoVistaApp extends StatelessWidget {
             return MaterialPageRoute(
                 builder: (_) => ViewVehicleScreen(userId: userId));
           case '/eventManager':
+            final userId = settings.arguments as String;
             return MaterialPageRoute(
-                builder: (_) => const CalendarFuelScreen());
+                builder: (_) => CalendarFuelScreen(userId: userId));
           case '/document_screen':
             final userId = settings.arguments as String;
             return MaterialPageRoute(
