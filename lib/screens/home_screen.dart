@@ -30,7 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _unreadNotifications = 0;
 
   // Dashboard state
-  Map<String, dynamic> _carStats = {
+  final Map<String, dynamic> _carStats = {
     'engineRpm': 1250,
     'oilPressure': 45,
     'fuelPressure': 40,
@@ -61,7 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initializeNotifications() async {
     try {
-      final hasPermission = await _notificationService.requestUserPermission(context);
+      final hasPermission =
+          await _notificationService.requestUserPermission(context);
       if (hasPermission) {
         await _notificationService.subscribeToUserNotifications(widget.userId);
         await _refreshUnreadCount();
@@ -75,7 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _refreshUnreadCount() async {
     try {
-      final notifications = await _notificationService.getNotifications(widget.userId);
+      final notifications =
+          await _notificationService.getNotifications(widget.userId);
       if (mounted) {
         setState(() {
           _unreadNotifications = notifications.where((n) => !n.isRead).length;
@@ -118,7 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
 
       if (cars.isNotEmpty) {
-        logger.i('Displaying info for car: ${cars.first.brand} ${cars.first.model}');
+        logger.i(
+            'Displaying info for car: ${cars.first.brand} ${cars.first.model}');
         Navigator.pushNamed(
           context,
           '/added_vehicle_screen',
@@ -265,7 +268,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(15)),
-                    child: const Icon(Icons.refresh, color: Colors.white, size: 18),
+                    child: const Icon(Icons.refresh,
+                        color: Colors.white, size: 18),
                   ),
                 ),
               ],
@@ -294,7 +298,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         "Health",
                         _carStats['engineCondition'],
                         Icons.health_and_safety,
-                        _carStats['engineCondition'] == 'Good' ? Colors.green : Colors.orange),
+                        _carStats['engineCondition'] == 'Good'
+                            ? Colors.green
+                            : Colors.orange),
                   ],
                 ),
                 _buildStatusRow(
@@ -336,7 +342,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStatusRow({required IconData icon, required String title, required List<Widget> children}) {
+  Widget _buildStatusRow(
+      {required IconData icon,
+      required String title,
+      required List<Widget> children}) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -362,7 +371,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStatusItem(String title, String value, IconData icon, Color color) {
+  Widget _buildStatusItem(
+      String title, String value, IconData icon, Color color) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -379,8 +389,12 @@ class _HomeScreenState extends State<HomeScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Colors.grey.shade700, fontSize: 12)),
-                Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(title,
+                    style:
+                        TextStyle(color: Colors.grey.shade700, fontSize: 12)),
+                Text(value,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
           ],
@@ -415,7 +429,8 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 // Custom App Bar
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 12.0),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -468,7 +483,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           Stack(
                             children: [
                               IconButton(
-                                icon: const Icon(Icons.notifications_active_outlined, color: Colors.white),
+                                icon: const Icon(
+                                    Icons.notifications_active_outlined,
+                                    color: Colors.white),
                                 onPressed: () {
                                   Navigator.pushNamed(
                                     context,
@@ -507,7 +524,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                           IconButton(
-                            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+                            icon: const Icon(Icons.refresh_rounded,
+                                color: Colors.white),
                             onPressed: () {
                               _refreshCars();
                               _refreshUnreadCount();
@@ -522,7 +540,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 4),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.logout_rounded, color: Colors.white),
+                            icon: const Icon(Icons.logout_rounded,
+                                color: Colors.white),
                             onPressed: _signOut,
                             tooltip: "Log Out",
                             iconSize: 24,
@@ -540,15 +559,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         "Welcome to AutoVista!",
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF004D40),
-                        ),
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF004D40),
+                                ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(8),
@@ -562,10 +583,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Text(
                           "Your one-stop solution for managing your vehicles.",
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.teal.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Colors.teal.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -582,7 +604,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: GridView(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 16,

@@ -26,7 +26,8 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
     });
 
     final inputImage = InputImage.fromFile(_pickedImage!);
-    final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
+    final RecognizedText recognizedText =
+        await _textRecognizer.processImage(inputImage);
 
     final parsedData = _extractVehicleData(recognizedText.text);
 
@@ -51,7 +52,7 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
 
   String? _matchRegex(String input, String pattern) {
     final match = RegExp(pattern, caseSensitive: false).firstMatch(input);
-    return match != null ? match.group(1)?.trim() : null;
+    return match?.group(1)?.trim();
   }
 
   @override
@@ -68,23 +69,23 @@ class _OcrScanScreenState extends State<OcrScanScreen> {
         child: _isLoading
             ? const CircularProgressIndicator()
             : Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_pickedImage != null)
-              Image.file(_pickedImage!, height: 250),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.camera_alt),
-              label: const Text("Take Photo"),
-              onPressed: () => _pickImage(ImageSource.camera),
-            ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.photo_library),
-              label: const Text("Choose from Gallery"),
-              onPressed: () => _pickImage(ImageSource.gallery),
-            ),
-          ],
-        ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_pickedImage != null)
+                    Image.file(_pickedImage!, height: 250),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text("Take Photo"),
+                    onPressed: () => _pickImage(ImageSource.camera),
+                  ),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text("Choose from Gallery"),
+                    onPressed: () => _pickImage(ImageSource.gallery),
+                  ),
+                ],
+              ),
       ),
     );
   }

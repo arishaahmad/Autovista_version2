@@ -38,4 +38,5 @@ flutter:
   uses-material-design: true
 
   assets:
-    - ../assets/images/
+    - C:\Users\Arisha\Documents\8th sem\autovista_version2\lib\assets\images\flat_tire.jpg
+    

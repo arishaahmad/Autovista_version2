@@ -58,7 +58,7 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   'Document Options',
                   style: TextStyle(
                     fontSize: 18,
@@ -126,7 +126,7 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   'Add Document',
                   style: TextStyle(
                     fontSize: 18,
@@ -154,7 +154,8 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Open your camera app, take a picture, and then select it here'),
+                        content: Text(
+                            'Open your camera app, take a picture, and then select it here'),
                         duration: Duration(seconds: 3),
                       ),
                     );
@@ -190,8 +191,11 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
   }) {
     return ListTile(
       leading: Icon(icon, color: color),
-      title: Text(title, style: TextStyle(fontSize: 16, color: Colors.white)),
-      subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: Colors.white70)) : null,
+      title: Text(title,
+          style: const TextStyle(fontSize: 16, color: Colors.white)),
+      subtitle: subtitle != null
+          ? Text(subtitle, style: const TextStyle(color: Colors.white70))
+          : null,
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       minLeadingWidth: 24,
@@ -243,12 +247,18 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
 
   String _sanitizeFileName(String fileName) {
     final sanitized = fileName
-        .replaceAll('ı', 'i').replaceAll('İ', 'I')
-        .replaceAll('ğ', 'g').replaceAll('Ğ', 'G')
-        .replaceAll('ü', 'u').replaceAll('Ü', 'U')
-        .replaceAll('ş', 's').replaceAll('Ş', 'S')
-        .replaceAll('ö', 'o').replaceAll('Ö', 'O')
-        .replaceAll('ç', 'c').replaceAll('Ç', 'C')
+        .replaceAll('ı', 'i')
+        .replaceAll('İ', 'I')
+        .replaceAll('ğ', 'g')
+        .replaceAll('Ğ', 'G')
+        .replaceAll('ü', 'u')
+        .replaceAll('Ü', 'U')
+        .replaceAll('ş', 's')
+        .replaceAll('Ş', 'S')
+        .replaceAll('ö', 'o')
+        .replaceAll('Ö', 'O')
+        .replaceAll('ç', 'c')
+        .replaceAll('Ç', 'C')
         .replaceAll(RegExp(r'[^a-zA-Z0-9._]'), '_');
     return sanitized;
   }
@@ -270,7 +280,8 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
       final bytes = await _selectedFile!.readAsBytes();
       final originalFileName = path.basename(_selectedFile!.path);
       final sanitizedFileName = _sanitizeFileName(originalFileName);
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}_$sanitizedFileName';
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_$sanitizedFileName';
       final fileType = path.extension(_selectedFile!.path).toLowerCase();
 
       await _supabaseService.uploadDocument(
@@ -296,7 +307,6 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
         _selectedCategory = null;
         _descriptionController.clear();
       });
-
     } catch (e) {
       if (!mounted) return;
       String errorMessage = 'Error uploading document';
@@ -315,14 +325,14 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
       appBar: AppBar(
         title: Text(
           _isUploadMode ? 'Upload Document' : 'Document Scanner',
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.teal.shade700,
         elevation: 1,
         actions: [
           if (_isUploadMode)
             IconButton(
-              icon: Icon(Icons.close, color: Colors.white),
+              icon: const Icon(Icons.close, color: Colors.white),
               onPressed: () {
                 setState(() {
                   _isUploadMode = false;
@@ -342,11 +352,13 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
         ),
         child: _isUploadMode ? _buildUploadForm() : _buildEmptyState(),
       ),
-      floatingActionButton: !_isUploadMode ? FloatingActionButton(
-        onPressed: _showInitialOptions,
-        backgroundColor: Colors.teal.shade700,
-        child: const Icon(Icons.add, color: Colors.white),
-      ) : null,
+      floatingActionButton: !_isUploadMode
+          ? FloatingActionButton(
+              onPressed: _showInitialOptions,
+              backgroundColor: Colors.teal.shade700,
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
     );
   }
 
@@ -362,8 +374,7 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
             style: TextStyle(
                 fontSize: 18,
                 color: Colors.teal.shade700,
-                fontWeight: FontWeight.w500
-            ),
+                fontWeight: FontWeight.w500),
           ),
           const SizedBox(height: 8),
           Text(
@@ -419,7 +430,7 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.teal.shade300!, width: 1),
+        side: BorderSide(color: Colors.teal.shade300, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -471,16 +482,19 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
         labelText: 'Select Category',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.teal.shade400!),
+          borderSide: BorderSide(color: Colors.teal.shade400),
         ),
         filled: true,
         fillColor: Colors.teal.shade50,
         prefixIcon: Icon(Icons.category, color: Colors.teal.shade700),
       ),
-      items: _categories.map((category) => DropdownMenuItem(
-        value: category,
-        child: Text(category, style: TextStyle(color: Colors.teal.shade700)),
-      )).toList(),
+      items: _categories
+          .map((category) => DropdownMenuItem(
+                value: category,
+                child: Text(category,
+                    style: TextStyle(color: Colors.teal.shade700)),
+              ))
+          .toList(),
       validator: (value) => value == null ? 'Please select a category' : null,
       onChanged: (value) => setState(() => _selectedCategory = value),
     );
@@ -493,15 +507,14 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
         labelText: 'Add Description',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.teal.shade400!),
+          borderSide: BorderSide(color: Colors.teal.shade400),
         ),
         filled: true,
         fillColor: Colors.teal.shade50,
         alignLabelWithHint: true,
       ),
-      validator: (value) => value?.isEmpty ?? true
-          ? 'Please enter a description'
-          : null,
+      validator: (value) =>
+          value?.isEmpty ?? true ? 'Please enter a description' : null,
       maxLines: 3,
     );
   }
@@ -516,9 +529,8 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
       ),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-        side: BorderSide(color: Colors.teal.shade700!),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        side: BorderSide(color: Colors.teal.shade700),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         backgroundColor: Colors.teal.shade50,
       ),
     );
@@ -530,27 +542,26 @@ class _ScanDocumentScreenState extends State<ScanDocumentScreen> {
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 18),
         backgroundColor: Colors.teal.shade700,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         elevation: 2,
       ),
       child: _isUploading
           ? const CircularProgressIndicator(color: Colors.white)
-          : Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.cloud_upload, color: Colors.white),
-          const SizedBox(width: 12),
-          const Text(
-            'Upload Document',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+          : const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.cloud_upload, color: Colors.white),
+                SizedBox(width: 12),
+                Text(
+                  'Upload Document',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 

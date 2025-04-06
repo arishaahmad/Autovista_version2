@@ -217,7 +217,8 @@ class SupabaseService {
   ) async {
     try {
       logger.i('Starting document upload for user: $userId');
-      logger.i('File details - Name: $fileName, Type: $fileType, Size: ${fileBytes.length} bytes');
+      logger.i(
+          'File details - Name: $fileName, Type: $fileType, Size: ${fileBytes.length} bytes');
 
       // 1. Upload file to Supabase Storage
       final String filePath = 'documents/$userId/$fileName';
@@ -669,18 +670,10 @@ class SupabaseService {
   Future<app_models.User> getUserProfile(String userId) async {
     logger.i('Fetching user profile for userId: $userId');
     try {
-      final response = await supabase
-          .from('users')
-          .select()
-          .eq('id', userId)
-          .single();
+      final response =
+          await supabase.from('users').select().eq('id', userId).single();
 
       logger.d('Raw response from Supabase: $response');
-
-      if (response == null) {
-        logger.e('No user profile found for userId: $userId');
-        throw Exception('User profile not found');
-      }
 
       final user = app_models.User.fromJson({...response, 'id': userId});
       logger.i('Successfully fetched profile for user: ${user.name}');
@@ -805,9 +798,7 @@ class SupabaseService {
 
   Future<void> addEmergencyContact(EmergencyContact contact) async {
     try {
-      await supabase
-          .from('emergency_contact')
-          .insert(contact.toJson());
+      await supabase.from('emergency_contact').insert(contact.toJson());
     } on PostgrestException catch (e) {
       throw Exception('Database error: ${e.message}');
     } catch (e) {
@@ -830,10 +821,7 @@ class SupabaseService {
 
   Future<void> deleteEmergencyContact(String contactId) async {
     try {
-      await supabase
-          .from('emergency_contact')
-          .delete()
-          .eq('id', contactId);
+      await supabase.from('emergency_contact').delete().eq('id', contactId);
     } on PostgrestException catch (e) {
       throw Exception('Database error: ${e.message}');
     } catch (e) {
