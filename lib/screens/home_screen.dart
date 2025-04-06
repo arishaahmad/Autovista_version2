@@ -667,6 +667,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+                      _buildFeatureButton(
+                        icon: Icons.help_outline_rounded,
+                        label: "Car Help",
+                        tooltip: "Vehicle Help & FAQs",
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/faq_screen',
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),

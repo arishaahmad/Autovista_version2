@@ -1,5 +1,6 @@
 import 'package:autovista/screens/document_list_screen.dart';
 import 'package:autovista/screens/emergency_contacts_screen.dart';
+import 'package:autovista/screens/faq_screen.dart'; // Added import
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/login_screen.dart';
@@ -20,13 +21,10 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
-    url:
-        'https://qmxoticuvkdmeyteyvaa.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteG90aWN1dmtkbWV5dGV5dmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjM4MzQsImV4cCI6MjA1MTQ5OTgzNH0.pwmB8VjrNKdBMdG8mvB5D_Ke4u-ONCk9rMMbrs3mKfE',
+    url: 'https://qmxoticuvkdmeyteyvaa.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteG90aWN1dmtkbWV5dGV5dmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjM4MzQsImV4cCI6MjA1MTQ5OTgzNH0.pwmB8VjrNKdBMdG8mvB5D_Ke4u-ONCk9rMMbrs3mKfE',
   );
 
-  // Initialize notification service
   final notificationService = NotificationService();
   await notificationService.initialize();
 
@@ -90,6 +88,8 @@ class AutoVistaApp extends StatelessWidget {
             final userId = settings.arguments as String;
             return MaterialPageRoute(
                 builder: (_) => EmergencyContactsScreen(userId: userId));
+          case '/faq_screen':  // New route
+            return MaterialPageRoute(builder: (_) => FAQScreen());
           default:
             return MaterialPageRoute(builder: (_) => const LoginScreen());
         }

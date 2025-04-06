@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\Users\Omara\Downloads\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\Omara\Desktop\Autovista_version2"
+export "FLUTTER_ROOT=C:\flutter"
+export "FLUTTER_APPLICATION_PATH=C:\Users\Arisha\Documents\8th sem\492 - Project\Autovista_version2\autovista_version_2-main"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"
