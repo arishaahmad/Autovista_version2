@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   awesome_notifications
   file_selector_linux
   gtk
+  printing
   url_launcher_linux
 )
 

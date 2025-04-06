@@ -828,4 +828,34 @@ class SupabaseService {
       throw Exception('Failed to delete emergency contact: $e');
     }
   }
+
+
+  // for the maintenance logs feature . 5-4-2025
+// viewing - export - print
+  Future<void> uploadMaintenanceLog(String userId, String fileName, Uint8List bytes) async {
+    final filePath = 'maintenance-logs/$userId/$fileName';
+    final storageRes = await supabase
+        .storage
+        .from('maintenance-logs')
+        .uploadBinary(filePath, bytes);
+    if (storageRes.isEmpty) throw Exception('Failed to upload maintenance log');
+    await supabase.from('maintenance_logs').insert({
+      'user_id': userId,
+      'file_name': fileName,
+      'file_path': filePath,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> fetchMaintenanceLogs(String userId) async {
+    final res = await supabase.from('maintenance_logs')
+        .select()
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+    return (res as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> deleteMaintenanceLog(String userId, String id, String filePath) async {
+    await supabase.storage.from('maintenance-logs').remove([filePath]);
+    await supabase.from('maintenance_logs').delete().eq('id', id);
+  }
 }

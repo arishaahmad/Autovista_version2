@@ -28,6 +28,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   file_picker: ^8.0.7
   supabase_flutter: ^2.3.4
+  pdfx: ^2.0.0
+  printing: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -37,6 +39,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  assets:
-    - C:\Users\Arisha\Documents\8th sem\autovista_version2\lib\assets\images\flat_tire.jpg
-    
+#  assets:
+#    - C:\Users\Arisha\Documents\8th sem\autovista_version2\lib\assets\images\flat_tire.jpg
+#

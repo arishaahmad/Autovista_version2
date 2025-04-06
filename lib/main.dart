@@ -16,6 +16,7 @@ import 'screens/notifications_screen.dart';
 import 'services/notification_service.dart';
 import 'theme.dart';
 import 'screens/ocr_Scan.dart';
+import 'screens/maintenance_log_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -90,6 +91,15 @@ class AutoVistaApp extends StatelessWidget {
                 builder: (_) => EmergencyContactsScreen(userId: userId));
           case '/faq_screen':  // New route
             return MaterialPageRoute(builder: (_) => FAQScreen());
+
+          case '/maintenance_logs':
+            final userId = settings.arguments as String;
+            return MaterialPageRoute(
+                builder: (_) => MaintenanceLogsScreen(userId: userId)
+            );
+
+
+
           default:
             return MaterialPageRoute(builder: (_) => const LoginScreen());
         }

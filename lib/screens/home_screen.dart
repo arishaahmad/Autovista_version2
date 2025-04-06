@@ -660,6 +660,21 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                         },
                       ),
+
+                      //5-4-2025
+                      _buildFeatureButton(
+                        icon: Icons.file_present_outlined,
+                        label: "Maintenance",
+                        tooltip: "Maintenance Logs",
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/maintenance_logs',
+                            arguments: widget.userId,
+                          );
+                        },
+                      ),
+
                       _buildFeatureButton(
                         icon: Icons.info_outline_rounded,
                         label: "Info",
