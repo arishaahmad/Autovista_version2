@@ -833,17 +833,27 @@ class SupabaseService {
   // for the maintenance logs feature . 5-4-2025
 // viewing - export - print
   Future<void> uploadMaintenanceLog(String userId, String fileName, Uint8List bytes) async {
-    final filePath = 'maintenance-logs/$userId/$fileName';
-    final storageRes = await supabase
-        .storage
-        .from('maintenance-logs')
-        .uploadBinary(filePath, bytes);
-    if (storageRes.isEmpty) throw Exception('Failed to upload maintenance log');
-    await supabase.from('maintenance_logs').insert({
-      'user_id': userId,
-      'file_name': fileName,
-      'file_path': filePath,
-    });
+    try {
+      final filePath = '$userId/$fileName';
+      // Ensure user is authenticated
+      final currentUser = supabase.auth.currentUser;
+      if (currentUser == null || currentUser.id != userId) {
+        throw Exception('User not authenticated');
+      }
+      // upload file
+      await supabase.storage
+          .from('maintenance-logs')
+          .uploadBinary(filePath, bytes);
+      // insert record
+      await supabase.from('maintenance_logs').insert({
+        'user_id': userId,
+        'file_name': fileName,
+        'file_path': filePath,
+      });
+    } catch (e) {
+      logger.e('Upload failed: $e');
+      rethrow;
+    }
   }
 
   Future<List<Map<String, dynamic>>> fetchMaintenanceLogs(String userId) async {

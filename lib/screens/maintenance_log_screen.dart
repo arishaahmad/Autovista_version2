@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 import '../services/supabase_service.dart';
 import '../models/maintenance_log_model.dart';
 import 'dart:io';
+import 'event_manager_screen.dart';
 
 class MaintenanceLogsScreen extends StatefulWidget {
   final String userId;
@@ -31,6 +32,7 @@ class _MaintenanceLogsScreenState extends State<MaintenanceLogsScreen> {
         .then((list) => list.map((e) => MaintenanceLog.fromJson(e)).toList());
   }
 
+  // Inside _MaintenanceLogsScreenState
   Future<void> _upload() async {
     final res = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -38,12 +40,47 @@ class _MaintenanceLogsScreenState extends State<MaintenanceLogsScreen> {
     );
     if (res != null) {
       final file = res.files.single;
-      // handle web vs mobile
       final bytes = file.bytes ?? await File(file.path!).readAsBytes();
       final name = file.name;
       await svc.uploadMaintenanceLog(widget.userId, name, bytes);
-      setState(_loadLogs);
+      setState(() => _loadLogs());
+      // Show prompt to add event
+      _showAddEventPrompt(name);
     }
+  }
+
+  // Add this new method
+  void _showAddEventPrompt(String fileName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Add Related Event?'),
+        content: const Text('Would you like to create a maintenance event tied to this log?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No Thanks'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CalendarFuelScreen(
+                    userId: widget.userId,
+                    initialEventTitle: 'Maintenance: $fileName',
+                    initialEventDescription: 'Related to maintenance log: $fileName',
+                    initialEventType: 'Maintenance',
+                  ),
+                ),
+              );
+            },
+            child: const Text('Yes, Add Event'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

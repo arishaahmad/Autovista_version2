@@ -5,11 +5,23 @@ import '../models/event_model.dart';
 import '../models/notification_model.dart';
 import '../services/supabase_service.dart';
 
+//13-4-2024
+//updated to support redirection from maintenance_log_screen
 class CalendarFuelScreen extends StatefulWidget {
   final String? userId;
   final NotificationModel? notification;
+  final String? initialEventTitle;
+  final String? initialEventDescription;
+  final String? initialEventType;
 
-  const CalendarFuelScreen({super.key, this.userId, this.notification});
+  const CalendarFuelScreen({
+    super.key,
+    this.userId,
+    this.notification,
+    this.initialEventTitle,
+    this.initialEventDescription,
+    this.initialEventType,
+  });
 
   @override
   State<CalendarFuelScreen> createState() => _CalendarFuelScreenState();
@@ -46,12 +58,25 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
     _selectedDay = _focusedDay;
     _events = {};
 
-    // Show the add event dialog if a notification is provided
-    if (widget.notification != null) {
+    // Handle initial data from maintenance log
+    if (widget.initialEventTitle != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _prefillAndShowDialog();
+      });
+    }
+    // Existing notification handling
+    else if (widget.notification != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _showAddEventDialog(prefillData: true);
       });
     }
+  }
+
+  void _prefillAndShowDialog() {
+    _titleController.text = widget.initialEventTitle!;
+    _descriptionController.text = widget.initialEventDescription ?? '';
+    _selectedEventType = widget.initialEventType ?? 'Maintenance';
+    _showAddEventDialog(prefillData: true);
   }
 
   @override
@@ -69,7 +94,7 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
         _events = {};
         for (var event in events) {
           final date =
-              DateTime(event.date.year, event.date.month, event.date.day);
+          DateTime(event.date.year, event.date.month, event.date.day);
           _events[date] = [..._events[date] ?? [], event];
         }
 
@@ -91,7 +116,7 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
     // Filter events that are today or in the future
     final futureEvents = allEvents
         .where((event) =>
-            event.date.isAfter(DateTime(now.year, now.month, now.day - 1)))
+        event.date.isAfter(DateTime(now.year, now.month, now.day - 1)))
         .toList();
 
     // Sort events by date
@@ -104,11 +129,23 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
   List<Event> _getEventsForDay(DateTime day) => _events[day] ?? [];
 
   Future<void> _showAddEventDialog({bool prefillData = false}) async {
-    if (prefillData && widget.notification != null) {
-      _titleController.text = widget.notification!.title;
-      _descriptionController.text = widget.notification!.body;
-      _selectedEventType = _mapNotificationType(widget.notification!.type);
+    DateTime selectedEventDate = _selectedDay;
+    TimeOfDay? selectedReminderTime;
+
+    if (prefillData) {
+      if (widget.initialEventTitle != null) {
+        // Prefill from maintenance log flow
+        _titleController.text = widget.initialEventTitle!;
+        _descriptionController.text = widget.initialEventDescription ?? '';
+        _selectedEventType = widget.initialEventType ?? 'Maintenance';
+      } else if (widget.notification != null) {
+        // Existing notification prefill
+        _titleController.text = widget.notification!.title;
+        _descriptionController.text = widget.notification!.body;
+        _selectedEventType = _mapNotificationType(widget.notification!.type);
+      }
     } else {
+      // Clear all fields for new event
       _titleController.clear();
       _descriptionController.clear();
       _fuelNeededController.clear();
@@ -126,48 +163,115 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Event Type Dropdown
               DropdownButtonFormField<String>(
                 value: _selectedEventType,
-                decoration: const InputDecoration(labelText: 'Event Type'),
+                decoration: const InputDecoration(
+                  labelText: 'Event Type',
+                  border: OutlineInputBorder(),
+                ),
                 items: _eventTypes
                     .map((type) => DropdownMenuItem(
-                          value: type,
-                          child: Text(type),
-                        ))
+                  value: type,
+                  child: Text(type),
+                ))
                     .toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedEventType = value!),
+                onChanged: (value) => setState(() => _selectedEventType = value!),
               ),
+              const SizedBox(height: 20),
+
+              // Event Date Picker
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.calendar_today),
+                title: const Text('Event Date'),
+                subtitle: Text(DateFormat('MMM dd, yyyy').format(selectedEventDate)),
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: selectedEventDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (pickedDate != null) {
+                    setState(() => selectedEventDate = pickedDate);
+                  }
+                },
+              ),
+              const SizedBox(height: 15),
+
+              // Title Field
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              const SizedBox(height: 15),
+
+              // Description Field
               TextField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
                 maxLines: 3,
               ),
+              const SizedBox(height: 15),
+
+              // Fuel Needed Field (conditional)
               if (_selectedEventType == 'Fuel')
-                TextField(
-                  controller: _fuelNeededController,
-                  decoration:
-                      const InputDecoration(labelText: 'Fuel Amount (L)'),
-                  keyboardType: TextInputType.number,
+                Column(
+                  children: [
+                    TextField(
+                      controller: _fuelNeededController,
+                      decoration: const InputDecoration(
+                        labelText: 'Fuel Amount (L)',
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 15),
+                  ],
                 ),
+
+              // Location Field
               TextField(
                 controller: _locationController,
-                decoration:
-                    const InputDecoration(labelText: 'Location (Optional)'),
-              ),
-              TextField(
-                controller: _reminderTimeController,
                 decoration: const InputDecoration(
-                    labelText: 'Reminder Time (Optional)'),
+                  labelText: 'Location (Optional)',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              const SizedBox(height: 15),
+
+              // Reminder Time Picker
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.access_time),
+                title: const Text('Reminder Time (Optional)'),
+                subtitle: Text(selectedReminderTime?.format(context) ?? 'Not set'),
+                onTap: () async {
+                  final pickedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (pickedTime != null) {
+                    setState(() => selectedReminderTime = pickedTime);
+                  }
+                },
+              ),
+              const SizedBox(height: 15),
+
+              // Notes Field
               TextField(
                 controller: _notesController,
-                decoration:
-                    const InputDecoration(labelText: 'Notes (Optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Notes (Optional)',
+                  border: OutlineInputBorder(),
+                ),
                 maxLines: 2,
               ),
             ],
@@ -180,61 +284,20 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
           ),
           TextButton(
             onPressed: () async {
-              // Check if required fields are filled
-              if (_titleController.text.isEmpty ||
-                  _descriptionController.text.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Please fill in all required fields'),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-                return;
-              }
-
-              // Ensure userId is not null
-              if (widget.userId == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('User ID is missing. Cannot create event.'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-
-              // Parse fuelNeeded if the event type is 'Fuel'
-              double? fuelNeeded;
-              if (_selectedEventType == 'Fuel') {
-                if (_fuelNeededController.text.isNotEmpty) {
-                  fuelNeeded = double.tryParse(_fuelNeededController.text);
-                  if (fuelNeeded == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Invalid fuel amount. Please enter a valid number.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    return;
-                  }
-                }
-              }
-
-              // Create the event
+              // Update event creation with selected date
               final newEvent = Event(
                 userId: widget.userId!,
                 title: _titleController.text,
                 description: _descriptionController.text,
-                date: _selectedDay,
+                date: selectedEventDate, // Use selected date
                 eventType: _selectedEventType,
-                fuelNeeded: fuelNeeded,
+                fuelNeeded: _selectedEventType == 'Fuel'
+                    ? double.tryParse(_fuelNeededController.text)
+                    : null,
                 location: _locationController.text.isNotEmpty
                     ? _locationController.text
                     : null,
-                reminderTime: _reminderTimeController.text.isNotEmpty
-                    ? _reminderTimeController.text
-                    : null,
+                reminderTime: selectedReminderTime?.format(context),
                 notes: _notesController.text.isNotEmpty
                     ? _notesController.text
                     : null,
@@ -245,28 +308,20 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
                 if (!mounted) return;
                 Navigator.pop(context);
                 _loadEvents();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Event added successfully'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
               } catch (e) {
                 if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error adding event: $e'),
-                    backgroundColor: Colors.red,
-                  ),
+                  SnackBar(content: Text('Error: $e')),
                 );
               }
             },
-            child: const Text('Add'),
+            child: const Text('Save'),
           ),
         ],
       ),
     );
   }
+
 
   String _mapNotificationType(String notificationType) {
     switch (notificationType) {
@@ -330,120 +385,120 @@ class _CalendarFuelScreenState extends State<CalendarFuelScreen> {
           Expanded(
             child: _upcomingEvents.isEmpty
                 ? const Center(
-                    child: Text('No upcoming events'),
-                  )
+              child: Text('No upcoming events'),
+            )
                 : ListView.builder(
-                    itemCount: _upcomingEvents.length,
-                    itemBuilder: (context, index) {
-                      final event = _upcomingEvents[index];
-                      return Dismissible(
-                        key: Key(event.id?.toString() ?? 'temp-$index'),
-                        background: Container(
-                          color: Colors.red,
-                          alignment: Alignment.centerRight,
-                          padding: const EdgeInsets.only(right: 20),
-                          child: const Icon(
-                            Icons.delete,
+              itemCount: _upcomingEvents.length,
+              itemBuilder: (context, index) {
+                final event = _upcomingEvents[index];
+                return Dismissible(
+                  key: Key(event.id?.toString() ?? 'temp-$index'),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 20),
+                    child: const Icon(
+                      Icons.delete,
+                      color: Colors.white,
+                    ),
+                  ),
+                  direction:
+                  DismissDirection.endToStart, // Right to left swipe
+                  confirmDismiss: (direction) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete Event'),
+                        content: const Text(
+                            'Are you sure you want to delete this event?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(context).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(context).pop(true),
+                            child: const Text('Delete',
+                                style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  onDismissed: (direction) async {
+                    try {
+                      await _supabaseService.deleteEvent(event.id!);
+                      setState(() {
+                        _upcomingEvents.removeAt(index);
+                      });
+                      _loadEvents(); // Refresh all events
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Event deleted successfully'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error deleting event: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    child: ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _getEventTypeColor(event.eventType),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            _getEventTypeIcon(event.eventType),
                             color: Colors.white,
                           ),
                         ),
-                        direction:
-                            DismissDirection.endToStart, // Right to left swipe
-                        confirmDismiss: (direction) async {
-                          return await showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Delete Event'),
-                              content: const Text(
-                                  'Are you sure you want to delete this event?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(context).pop(true),
-                                  child: const Text('Delete',
-                                      style: TextStyle(color: Colors.red)),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        onDismissed: (direction) async {
-                          try {
-                            await _supabaseService.deleteEvent(event.id!);
-                            setState(() {
-                              _upcomingEvents.removeAt(index);
-                            });
-                            _loadEvents(); // Refresh all events
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Event deleted successfully'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error deleting event: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                        child: Card(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          child: ListTile(
-                            leading: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: _getEventTypeColor(event.eventType),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  _getEventTypeIcon(event.eventType),
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              event.title,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  event.description,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  DateFormat('MMM d, yyyy').format(event.date),
-                                  style: TextStyle(
-                                    color: _getDateColor(event.date),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            isThreeLine: true,
-                            onTap: () => _showEventDetails(event),
+                      ),
+                      title: Text(
+                        event.title,
+                        style:
+                        const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            event.description,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      );
-                    },
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormat('MMM d, yyyy').format(event.date),
+                            style: TextStyle(
+                              color: _getDateColor(event.date),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      isThreeLine: true,
+                      onTap: () => _showEventDetails(event),
+                    ),
                   ),
+                );
+              },
+            ),
           ),
         ],
       ),
