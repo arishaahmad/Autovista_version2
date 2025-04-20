@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "41277522024",
+    "project_id": "aipushnotif",
+    "storage_bucket": "aipushnotif.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:41277522024:android:40d8c1b443c1bc1d3e3bdd",
+        "android_client_info": {
+          "package_name": "com.example.autovista"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCq7Nqtols-tRwD_N1AoasGKdX8XWMSAkM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

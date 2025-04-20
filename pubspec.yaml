@@ -30,6 +30,8 @@ dependencies:
   supabase_flutter: ^2.3.4
   pdfx: ^2.0.0
   printing: ^5.0.0
+  firebase_core: ^2.27.0
+  firebase_messaging: ^14.7.4
 
 dev_dependencies:
   flutter_test:

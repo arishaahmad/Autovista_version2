@@ -4,6 +4,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import '../models/notification_model.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/material.dart';
+import 'dart:typed_data';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -33,7 +34,7 @@ class NotificationService {
 
       // Initialize awesome notifications
       await awesome.AwesomeNotifications().initialize(
-        null, // no icon for now
+        null,
         [
           awesome.NotificationChannel(
             channelKey: 'autovista_notifications',
@@ -41,10 +42,16 @@ class NotificationService {
             channelDescription: 'Notifications for AutoVista app',
             defaultColor: const Color(0xFF9D50DD),
             ledColor: const Color(0xFF9D50DD),
-            importance: awesome.NotificationImportance.High,
+            importance: awesome.NotificationImportance.Max,
+            criticalAlerts: true,
+            enableVibration: true,
+            vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
+            playSound: true,
+            channelShowBadge: true,
           ),
         ],
       );
+
 
       logger.i('NotificationService initialized successfully');
     } catch (e) {
