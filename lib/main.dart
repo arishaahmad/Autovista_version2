@@ -18,13 +18,21 @@ import 'services/notification_service.dart';
 import 'theme.dart';
 import 'screens/ocr_Scan.dart';
 import 'screens/maintenance_log_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart'; // generated later
+import 'services/firebase_background_handler.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   await Supabase.initialize(
     url: 'https://qmxoticuvkdmeyteyvaa.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteG90aWN1dmtkbWV5dGV5dmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjM4MzQsImV4cCI6MjA1MTQ5OTgzNH0.pwmB8VjrNKdBMdG8mvB5D_Ke4u-ONCk9rMMbrs3mKfE',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFteG90aWN1dmtkbWV5dGV5dmFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU5MjM4MzQsImV4cCI6MjA1MTQ5OTgzNH0.pwmB8VjrNKdBMdG8mvB5D_Ke4u-ONCk9rMMbrs3mKfE',
   );
 
   final notificationService = NotificationService();
@@ -32,6 +40,7 @@ void main() async {
 
   runApp(const AutoVistaApp());
 }
+
 
 class AutoVistaApp extends StatelessWidget {
   const AutoVistaApp({super.key});
@@ -42,7 +51,9 @@ class AutoVistaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'AutoVista',
       theme: AppTheme.lightTheme,
-      initialRoute: '/login',
+      home: Supabase.instance.client.auth.currentUser != null
+          ? HomeScreen(userId: Supabase.instance.client.auth.currentUser!.id)
+          : const LoginScreen(),
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/ocr_screen':
@@ -53,6 +64,7 @@ class AutoVistaApp extends StatelessWidget {
             return MaterialPageRoute(builder: (_) => const SignupScreen());
           case '/home':
             final userId = settings.arguments as String;
+
             return MaterialPageRoute(
                 builder: (_) => HomeScreen(userId: userId));
           case '/profile_screen':

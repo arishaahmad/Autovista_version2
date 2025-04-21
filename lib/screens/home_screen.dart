@@ -3,6 +3,8 @@ import '../services/supabase_service.dart';
 import '../services/notification_service.dart';
 import '../models/car_model.dart';
 import 'package:logger/logger.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:awesome_notifications/awesome_notifications.dart' as awesome;
 
 class HomeScreen extends StatefulWidget {
   final String userId;
@@ -62,10 +64,52 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _initializeNotifications() async {
     try {
       final hasPermission =
-          await _notificationService.requestUserPermission(context);
+      await _notificationService.requestUserPermission(context);
       if (hasPermission) {
         await _notificationService.subscribeToUserNotifications(widget.userId);
         await _refreshUnreadCount();
+
+        // 🔥 FCM Setup for testing (foreground)
+        final messaging = FirebaseMessaging.instance;
+
+        await messaging.requestPermission();
+        final token = await messaging.getToken();
+        logger.i('🔑 FCM Token: $token');
+
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+          final title = message.notification?.title ?? 'Alert';
+          final body = message.notification?.body ?? 'You received a message';
+
+          logger.i('📥 Foreground message: $title');
+
+          await awesome.AwesomeNotifications().createNotification(
+            content: awesome.NotificationContent(
+              id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+              channelKey: 'autovista_notifications',
+              title: '🚨 $title',
+              body: body,
+              backgroundColor: Colors.red.shade900,
+              color: Colors.white,
+              notificationLayout: awesome.NotificationLayout.BigText,
+              criticalAlert: true,
+              wakeUpScreen: true,
+              fullScreenIntent: true,
+              autoDismissible: false,
+              displayOnBackground: true,
+              displayOnForeground: true,
+              locked: true
+            ),
+            actionButtons: [
+              awesome.NotificationActionButton(
+                key: 'EMERGENCY_ACKNOWLEDGE',
+                label: 'Acknowledge',
+                color: Colors.red,
+                autoDismissible: true,
+              ),
+            ],
+          );
+        });
+
       } else {
         logger.w('User denied notification permissions');
       }
