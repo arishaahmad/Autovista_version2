@@ -1,5 +1,6 @@
 import 'package:autovista/screens/document_list_screen.dart';
 import 'package:autovista/screens/emergency_contacts_screen.dart';
+import 'package:autovista/screens/recommendations_screen.dart';
 import 'package:autovista/screens/faq_screen.dart'; // Added import
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -96,6 +97,12 @@ class AutoVistaApp extends StatelessWidget {
             final userId = settings.arguments as String;
             return MaterialPageRoute(
                 builder: (_) => MaintenanceLogsScreen(userId: userId)
+            );
+
+          case '/recommendations':
+            final userId = settings.arguments as String;
+            return MaterialPageRoute(
+              builder: (_) => RecommendationsScreen(userId: userId),
             );
 
 

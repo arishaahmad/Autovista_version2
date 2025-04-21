@@ -706,6 +706,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                       _buildFeatureButton(
+                        icon: Icons.recommend,
+                        label: 'Recs',
+                        tooltip: 'Recommendations',
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/recommendations',
+                          arguments: widget.userId,
+                        ),
+                      ),
+                      _buildFeatureButton(
                         icon: Icons.help_outline_rounded,
                         label: "Car Help",
                         tooltip: "Vehicle Help & FAQs",
